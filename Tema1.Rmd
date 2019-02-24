@@ -1,0 +1,108 @@
+---
+title: "Tema 1"
+output: html_notebook
+---
+Incarca librarii
+
+```{r}
+library(corrplot)
+library("gplots")
+library(MASS)
+```
+
+Reading data
+
+```{r}
+train = read.csv("../input/train.csv")
+summary(train)
+```
+Analizam boxploturile
+
+```{r}
+boxplot(train$Age,main="Age")
+boxplot(train$SibSp,main="Siblings")
+boxplot(train$Parch,main="Parch")
+boxplot(train$Fare,main="Fare")
+```
+
+Analizam histogramele
+
+```{r}
+barplot(table(train$Survived),main="Survived")
+hist(train$Age,main="Age")
+hist(train$SibSp,main="Siblings")
+hist(train$Parch,main="Parch")
+hist(train$Fare,main="Fare")
+barplot(table(train$Pclass),main="Pclass")
+barplot(table(train$Sex),main="Sex")
+barplot(table(train$Ticket),main="Ticket")
+barplot(table(train$Embarked),main="Embarked")
+```
+
+Forma distributie
+
+```{r}
+plot(density(train$Age,na.rm=T))
+plot(density(train$SibSp))
+plot(density(train$Parch))
+plot(density(train$Fare))
+```
+
+
+
+Analiza bivariata
+```{r  fig.width=10, fig.height=10}
+
+pairs(train[,c("Sex","Age","Pclass","SibSp","Parch","Ticket","Fare","Embarked")])
+
+ 
+
+#library(GGally)
+#ggpairs(train, diag=list(continuous="density", discrete="bar"), axisLabels="show")
+```
+
+Scatterplots
+
+
+Calculul corelatiiei dintre variabile
+
+```{r}
+
+df <- train %>% dplyr::select(Age, Sex, Pclass, Fare, Embarked, SibSp, Parch)
+df$Age[is.na(df$Age)] <- mean(df$Age,na.rm = T)
+df$Sex <- as.numeric(df$Sex)
+df$Embarked <- as.numeric(df$Embarked)
+
+corrplot(cor(df), type ='upper', method ='ellipse', tl.pos ='tp')
+corrplot(cor(df), type ='lower', method ='number', add = T, col='black', cl.pos='n',diag=F)
+```
+
+Testul de independenta
+
+```{r warning=FALSE}
+chisq.test(table(train$Age,train$Sex)) 
+chisq.test(table(train$Age,train$Embarked)) 
+chisq.test(table(train$Age,train$SibSp)) 
+chisq.test(table(train$Age,train$Parch)) 
+chisq.test(table(train$Sex,train$Embarked))
+chisq.test(table(train$Sex,train$SibSp))
+chisq.test(table(train$SibSp,train$Parch))
+
+mapply(function(x, y) chisq.test(x, y)$p.value, train[, -5], MoreArgs=list(train[,5]))
+
+```
+
+
+Corelatia
+
+```{r}
+
+df2 <- train %>% dplyr::select(Survived, Age, Sex, Pclass, Fare, Embarked, SibSp, Parch)
+df2$Age[is.na(df2$Age)] <- mean(df2$Age,na.rm = T)
+df2$Sex <- as.numeric(df2$Sex)
+df2$Embarked <- as.numeric(df2$Embarked)
+
+corrplot(cor(df2), type ='upper', method ='ellipse', tl.pos ='tp')
+corrplot(cor(df2), type ='lower', method ='number', add = T, col='black', cl.pos='n',diag=F)
+```
+
