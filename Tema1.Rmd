@@ -13,7 +13,7 @@ library(MASS)
 Reading data
 
 ```{r}
-train = read.csv("../input/train.csv")
+train = read.csv("./input/train.csv")
 summary(train)
 ```
 Analizam boxploturile
@@ -39,13 +39,33 @@ barplot(table(train$Ticket),main="Ticket")
 barplot(table(train$Embarked),main="Embarked")
 ```
 
-Forma distributie
-
+Age distribution
 ```{r}
-plot(density(train$Age,na.rm=T))
-plot(density(train$SibSp))
-plot(density(train$Parch))
-plot(density(train$Fare))
+plot(density(tr$Age, na.rm = T), main="Age distribution")
+paste("skewness = ", skewness(tr$Age, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$Age, na.rm = T)) 
+
+```
+SibSp distribution
+```{r}
+plot(density(tr$SibSp, na.rm = T), main="SibSp distribution")
+paste("skewness = ", skewness(tr$SibSp, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$SibSp, na.rm = T)) 
+
+```
+Fare distribution
+```{r}
+plot(density(tr$Fare, na.rm = T), main="Fare distribution",col=iris[,5])
+paste("skewness = ", skewness(tr$Fare, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$Fare, na.rm = T)) 
+
+```
+Parch distribution
+```{r}
+plot(density(tr$Parch, na.rm = T), main="Parch distribution")
+paste("skewness = ", skewness(tr$Parch, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$Parch, na.rm = T)) 
+
 ```
 
 
@@ -59,6 +79,20 @@ pairs(train[,c("Sex","Age","Pclass","SibSp","Parch","Ticket","Fare","Embarked")]
 
 #library(GGally)
 #ggpairs(train, diag=list(continuous="density", discrete="bar"), axisLabels="show")
+```
+
+Principal components Analysys plots between 2 variables
+```{r}
+train_aux = train[,c("Sex","Age","Pclass","SibSp","Parch","Fare","Embarked")]
+train_aux$Age[is.na(train_aux$Age)] = mean(train$Age, na.rm = T)
+train_aux$Sex = as.numeric((as.factor(train_aux$Sex)))
+train_aux$Embarked = as.numeric((as.factor(train_aux$Embarked)))
+train_aux$Embarked[is.na(train_aux$Embarked)] = 3
+pca <- prcomp(train_aux)
+summary(pca)
+biplot(pca, choices = c(1,2))
+plot(pca, type = "l")
+pairs(pca$x[, c(1,2)],col=iris[,5])
 ```
 
 Scatterplots
@@ -90,6 +124,25 @@ chisq.test(table(train$SibSp,train$Parch))
 
 mapply(function(x, y) chisq.test(x, y)$p.value, train[, -5], MoreArgs=list(train[,5]))
 
+```
+tsne
+```{r}
+
+library(caret)  
+library(Rtsne)
+
+tsne_model_1 = Rtsne(as.matrix(train_aux), check_duplicates=FALSE, pca=TRUE, perplexity=30, theta=0.5, dims=2)
+d_tsne_1 = as.data.frame(tsne_model_1$Y)
+## plotting the results without clustering
+ggplot(d_tsne_1, aes(x=V1, y=V2)) +  
+  geom_point(size=0.25) +
+  guides(colour=guide_legend(override.aes=list(size=6))) +
+  xlab("") + ylab("") +
+  ggtitle("t-SNE") +
+  theme_light(base_size=20) +
+  theme(axis.text.x=element_blank(),
+        axis.text.y=element_blank()) +
+  scale_colour_brewer(palette = "Set2")
 ```
 
 
