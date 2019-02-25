@@ -8,6 +8,8 @@ Incarca librarii
 library(corrplot)
 library("gplots")
 library(MASS)
+library(e1071)
+library(dplyr)
 ```
 
 Reading data
@@ -41,30 +43,30 @@ barplot(table(train$Embarked),main="Embarked")
 
 Age distribution
 ```{r}
-plot(density(tr$Age, na.rm = T), main="Age distribution")
-paste("skewness = ", skewness(tr$Age, na.rm = T)) 
-paste("kurtosis = ", kurtosis(tr$Age, na.rm = T)) 
+plot(density(train$Age, na.rm = T), main="Age distribution")
+paste("skewness = ", skewness(train$Age, na.rm = T)) 
+paste("kurtosis = ", kurtosis(train$Age, na.rm = T)) 
 
 ```
 SibSp distribution
 ```{r}
-plot(density(tr$SibSp, na.rm = T), main="SibSp distribution")
-paste("skewness = ", skewness(tr$SibSp, na.rm = T)) 
-paste("kurtosis = ", kurtosis(tr$SibSp, na.rm = T)) 
+plot(density(train$SibSp, na.rm = T), main="SibSp distribution")
+paste("skewness = ", skewness(train$SibSp, na.rm = T)) 
+paste("kurtosis = ", kurtosis(train$SibSp, na.rm = T)) 
 
 ```
 Fare distribution
 ```{r}
-plot(density(tr$Fare, na.rm = T), main="Fare distribution",col=iris[,5])
-paste("skewness = ", skewness(tr$Fare, na.rm = T)) 
-paste("kurtosis = ", kurtosis(tr$Fare, na.rm = T)) 
+plot(density(train$Fare, na.rm = T), main="Fare distribution",col=iris[,5])
+paste("skewness = ", skewness(train$Fare, na.rm = T)) 
+paste("kurtosis = ", kurtosis(train$Fare, na.rm = T)) 
 
 ```
 Parch distribution
 ```{r}
-plot(density(tr$Parch, na.rm = T), main="Parch distribution")
-paste("skewness = ", skewness(tr$Parch, na.rm = T)) 
-paste("kurtosis = ", kurtosis(tr$Parch, na.rm = T)) 
+plot(density(train$Parch, na.rm = T), main="Parch distribution")
+paste("skewness = ", skewness(train$Parch, na.rm = T)) 
+paste("kurtosis = ", kurtosis(train$Parch, na.rm = T)) 
 
 ```
 
