@@ -1,0 +1,114 @@
+---
+title: "Tema 2"
+output: html_notebook
+---
+
+Incarca librarii
+
+```{r warning=FALSE}
+library(corrplot)
+library("gplots")
+library(MASS)
+library(e1071)
+library(dplyr)
+library("plot3D")
+```
+
+Reading data
+
+```{r}
+train = read.csv("./input/train.csv")
+train$Age[is.na(train$Age)] = mean(train$Age, na.rm = T)
+```
+
+Age
+```{r}
+outlier_values <- boxplot.stats(train$Age, coef = 3)$out  # outlier values.
+boxplot(train$Age, main="Age", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+SibSp
+```{r}
+outlier_values <- boxplot.stats(train$SibSp)$out  # outlier values.
+boxplot(train$SibSp, main="SibSp", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+
+Parch
+```{r}
+outlier_values <- boxplot.stats(train$Parch, coef = 0)$out  # outlier values.
+boxplot(train$Parch, main="Parch", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+SibSp
+```{r}
+outlier_values <- boxplot.stats(train$SibSp)$out  # outlier values.
+boxplot(train$SibSp, main="SibSp", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+Fare
+```{r}
+outlier_values <- boxplot.stats(train$Fare, coef = 2 )$out  # outlier values.
+boxplot(train$Fare, main="Fare", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+Embarked
+```{r}
+
+embarked = as.numeric((as.factor(train$Embarked)))
+outlier_values <- boxplot.stats(embarked)$out  # outlier values.
+boxplot(embarked, main="Embarked", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+Pclass
+```{r}
+
+pclass = train$Pclass
+outlier_values <- boxplot.stats(pclass)$out  # outlier values.
+boxplot(pclass, main="Embarked", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+
+Analiza multivariata
+
+
+Mahalanobis
+```{r}
+library(Rlof)
+train$Embarked = as.numeric((as.factor(train$Embarked)))
+train$Sex = as.numeric((as.factor(train$Sex)))
+data = train[, c("Survived", "Age")]
+n.outliers   <- 2 # Mark as outliers the 2 most extreme points
+m.dist.order <- order(mahalanobis(data, colMeans(data), cov(data)), decreasing=TRUE)
+is.outlier   <- rep(FALSE, nrow(data))
+is.outlier[m.dist.order[1:n.outliers]] <- TRUE
+pch <- is.outlier * 16
+plot(data, pch=pch)
+
+
+
+library(rgl)
+hwa <- train[, c("Pclass", "Age", "Fare")]
+m.dist.order                  <- order(mahalanobis(hwa, colMeans(hwa), cov(hwa)), decreasing=TRUE)
+is.outlier                    <- rep(FALSE, nrow(hwa))
+is.outlier[m.dist.order[1:2]] <- TRUE # Mark as outliers the 2 most extreme points
+col                           <- is.outlier + 1
+plot3d(hwa$Pclass, hwa$Age, hwa$Fare, type="s", col=col)
+scatterplot3d(hwa$Pclass, hwa$Age, hwa$Fare)
+
+```
+
+
+LOF
+```{r}
+library(Rlof)
+train$Embarked = as.numeric((as.factor(train$Embarked)))
+train$Sex = as.numeric((as.factor(train$Sex)))
+data = train[, c("Survived", "Age", "Embarked", "Sex")]
+lof = lof(data, 10)
+hist(lof, breaks=10)
+
+plot(data, pch = ".", main = "LOF (k=3)")
+points(data, cex = (lof-1)*3, pch = 1, col="red")
+text(data[lof>2,], labels = round(lof, 1)[lof>2], pos = 3)
+```
