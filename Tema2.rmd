@@ -21,6 +21,7 @@ library(MASS)
 library(e1071)
 library(dplyr)
 library("plot3D")
+library("scatterplot3d")
 ```
 
 Reading data
@@ -94,6 +95,7 @@ m.dist.order <- order(mahalanobis(data, colMeans(data), cov(data)), decreasing=T
 is.outlier   <- rep(FALSE, nrow(data))
 is.outlier[m.dist.order[1:n.outliers]] <- TRUE
 pch <- is.outlier * 16
+plot(mahalanobis(data, colMeans(data), cov(data)), main = "Distantele Mahalanobis", pch=pch)
 plot(data, pch=pch)
 
 
