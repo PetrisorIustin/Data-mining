@@ -1,6 +1,8 @@
 ---
 title: "Tema 1"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 Incarca librarii
 
@@ -11,6 +13,9 @@ library(MASS)
 library(e1071)
 library(dplyr)
 library("plot3D")
+library("scatterplot3d")
+library("caret")
+library("Rtsne")
 ```
 
 Reading data
@@ -26,6 +31,8 @@ boxplot(train$Age,main="Age")
 boxplot(train$SibSp,main="Siblings")
 boxplot(train$Parch,main="Parch")
 boxplot(train$Fare,main="Fare")
+boxplot(train$Fare ~ train$Survived + train$Sex)
+boxplot(train$Age ~ train$Survived + train$Sex)
 ```
 
 Analizam histogramele
@@ -76,7 +83,7 @@ paste("kurtosis = ", kurtosis(train$Parch, na.rm = T))
 Analiza bivariata
 ```{r  fig.width=10, fig.height=10}
 
-pairs(train[,c("Sex","Age","Pclass","SibSp","Parch","Ticket","Fare","Embarked")])
+pairs(train[,c("Sex","Age","Pclass","SibSp","Parch","Ticket","Fare","Embarked","Survived")])
 
  
 
@@ -151,10 +158,11 @@ tsne
 library(caret)  
 library(Rtsne)
 
+color = c("green","red")
 tsne_model_1 = Rtsne(as.matrix(train_aux), check_duplicates=FALSE, pca=TRUE, perplexity=30, theta=0.5, dims=2)
 d_tsne_1 = as.data.frame(tsne_model_1$Y)
 ## plotting the results without clustering
-ggplot(d_tsne_1, aes(x=V1, y=V2)) +  
+ggplot(d_tsne_1, aes(x=V1, y=V2,colour=color[train$Survived+1])) +  
   geom_point(size=0.25) +
   guides(colour=guide_legend(override.aes=list(size=6))) +
   xlab("") + ylab("") +

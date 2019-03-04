@@ -1,9 +1,18 @@
 ---
 title: "Tema 2"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
+```{r setup}
+library(knitr)
+library(rgl)
+knit_hooks$set(webgl = hook_webgl)
+```
+
 Incarca librarii
+
 
 ```{r warning=FALSE}
 library(corrplot)
@@ -65,16 +74,18 @@ Pclass
 
 pclass = train$Pclass
 outlier_values <- boxplot.stats(pclass)$out  # outlier values.
-boxplot(pclass, main="Embarked", boxwex=0.1)
+boxplot(pclass, main="Pclass", boxwex=0.1)
 mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
 ```
 
 Analiza multivariata
 
 
+
 Mahalanobis
-```{r}
+```{r testgl, webgl=TRUE}
 library(Rlof)
+library(scatterplot3d)
 train$Embarked = as.numeric((as.factor(train$Embarked)))
 train$Sex = as.numeric((as.factor(train$Sex)))
 data = train[, c("Survived", "Age")]
