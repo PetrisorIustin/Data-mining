@@ -88,12 +88,23 @@ Mahalanobis
 library(Rlof)
 data = train$X
 n.outliers   <- 70 # Mark as outliers the 70 most extreme points
-m.dist.order <- order(mahalanobis(data, colMeans(data), cov(data)), decreasing=TRUE)
+dist.mahalanobis = mahalanobis(data, colMeans(data), cov(data))
+threeshold =  mean(dist.mahalanobis) + 1 * sd(dist.mahalanobis)
+
+
+
+m.dist.order <- order(dist.mahalanobis, decreasing=TRUE)
 is.outlier   <- rep(FALSE, nrow(data))
-is.outlier[m.dist.order[1:n.outliers]] <- TRUE
+is.outlier[dist.mahalanobis > threeshold] <- TRUE
 pch <- is.outlier * 16
 plot(data, pch=pch)
+plot(dist.mahalanobis, pch=pch)
 
+
+is.outlier   <- rep(FALSE, nrow(data))
+is.outlier[train$y == 1] <- TRUE
+pch <- is.outlier * 16
+plot(data, pch=pch)
 
 
 # library(rgl)
@@ -122,10 +133,23 @@ text(data[lof>2,], labels = round(lof, 1)[lof>2], pos = 3)
 x = data[lof>2,]
 print(nrow(x))
 
-lof = lof[is.nan(lof) == FALSE]
-lof = lof[is.infinite(lof) == FALSE]
+true_positive = 0;
+false_positive = 0
 
-b <- train$y[isOutlier(lof) == TRUE, ]
+for (i in 1:nrow(data.frame(lof))) {
+  if(!is.nan(lof[i]) && !is.infinite(lof[i]) &&  lof[i] > 2 && train$y[i] == 1) {
+    true_positive = true_positive + 1;
+  }
+  if(is.nan(lof[i]) && is.infinite(lof[i]) && lof[i] <= 2 && train$y[i] == 1) {
+    false_positive = false_positive + 1;
+  }
+}
+
+recall = true_positive / (true_positive + false_positive)
+print(recall)
+
+
+b <- train$y[lof>2, ]
 print(b)
 
 ```
