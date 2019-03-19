@@ -1,0 +1,137 @@
+---
+title: "Tema 3- Asociation Rules"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+Doua chestii de facut.
+
+Regula x -> y
+Regula x -> Clasa
+
+sup = P (xuy) = F(xuy)/x
+Reprezinta Frecventa itemilor din regula / total items
+De luat in considerare iteme care au un suport mai mare de 0.1?
+
+conf = P (Y|X)
+Reprezinta increderea cu care y il implica pe X
+Egal cu nr aparitii x si y / nr aparitii x
+
+lift = conf*F(y)
+Lift mai mare ca 1 inseamna ca y -> x. Cu cat mai mare cu atat y -> x mai tare
+Lift mai mic ca 1 inseamnca ca y nu il -> x. Indiferent de confidence lvl.
+
+
+
+Loading libraries
+```{r,warning=FALSE}
+library(ggplot2)
+library(readr) 
+library(plyr)
+library(dplyr)
+library(mice)
+library(tibble)
+library(RWeka)
+```
+Reading data
+
+```{r}
+train = read.csv("./input/train.csv")
+test = read.csv("./input/test.csv")
+
+train=na.omit(train)
+test$Survived <- NA
+
+ggplot(train)+geom_bar(aes(Survived))+facet_wrap(~Sex)
+ggplot(train)+geom_bar(aes(Survived))+facet_wrap(~Pclass)
+ggplot(train)+geom_bar(aes(Survived))+facet_wrap(~Embarked)
+```
+
+Data structure
+```{r}
+
+#head(train,n=10)
+
+
+#Droping columns
+
+titanic=rbind(train,test)
+
+titanic$Survived=as.factor(titanic$Survived)
+titanic$Family=titanic$SibSp+titanic$Parch+1 
+
+titanic$Deck=as.factor(substring(titanic$Cabin,1,1)) 
+
+titanic$title=gsub("^.*, (.*?)\\..*$", "\\1",titanic$Name)
+
+#There are many titles quite similar between them, so we're gonna to simplify them:
+
+titanic$title[titanic$title == 'Mlle']='Miss'
+titanic$title[titanic$title == 'Ms']          <- 'Miss'
+titanic$title[titanic$title == 'Mme']         <- 'Mrs' 
+titanic$title[titanic$title == 'Lady']          <- 'Miss'
+titanic$title[titanic$title == 'Dona']          <- 'Miss'
+titanic$title[titanic$title == 'Capt']        <- 'Officer' 
+titanic$title[titanic$title =='Col']        <- 'Officer' 
+titanic$title[titanic$title == 'Major']   <- 'Officer'
+titanic$title[titanic$title =='Dr']   <- 'Officer'
+titanic$title[titanic$title == 'Rev']   <- 'Officer'
+titanic$title[titanic$title == 'Don']   <- 'Officer'
+titanic$title[titanic$title == 'Sir']   <- 'Officer'
+titanic$title[titanic$title == 'the Countess']   <- 'Officer'
+titanic$title[titanic$title == 'Jonkheer']   <- 'Officer'
+
+titanic$title=as.factor(titanic$title)
+
+set.seed(129)
+mice_mod <- mice(titanic[, !names(titanic) %in% c('PassengerId','Name','Ticket','Cabin','Family','Surname','Survived')], method='rf') 
+mice_output <- complete(mice_mod)
+titanic$Age <- mice_output$Age
+
+#Traveling alone
+#We also will include a variable of repeated Tickets (people who bought tickets together)
+
+titanic <- ddply(titanic,.(Ticket),transform,Ticketsize=length(Ticket))
+titanic$Ticketsize <- as.factor(titanic$Ticketsize)
+titanic <- titanic[order(titanic$PassengerId),]
+
+
+titanic$Adult[titanic$Age<18]=0
+titanic$Adult[titanic$Age>17]=1
+
+titanic_train=titanic[1:714,]
+titanic_test=titanic[715:1132,]
+
+
+```
+
+
+Viewing data after alterations
+```{r}
+head(titanic_train)
+ggplot(titanic_train)+geom_bar(aes(Survived))+facet_wrap(~Adult)
+ggplot(titanic_train)+geom_bar(aes(Survived))+facet_wrap(~Family)
+ggplot(titanic_train)+geom_bar(aes(Survived))+facet_wrap(~Deck)
+ggplot(titanic_train)+geom_bar(aes(Survived))+facet_wrap(~title)
+```
+
+
+Generating rules
+```{r}
+titanic_model_RL <- JRip(Survived ~ Pclass +Sex+ Adult+ Family + Deck + title + Embarked + Ticketsize, data = titanic_train)
+prediction_RL=predict(titanic_model_RL,titanic_test)
+
+titanic_model_RL
+```
+
+Prediction results
+```{r}
+results=data.frame(titanic_test$PassengerId)
+results$Survived=prediction_RL
+results$Survived=as.integer(results$Survived)-1
+colnames(results)=c("PassengerID","Survived")
+write.csv(results, file="results.csv",row.names=FALSE)
+```
+
