@@ -1,0 +1,155 @@
+---
+title: "Tema 2 partea2"
+output: html_notebook
+---
+
+Incarca librarii
+
+```{r warning=FALSE}
+library(corrplot)
+library("gplots")
+library(MASS)
+library(e1071)
+library(dplyr)
+library("plot3D")
+library("scatterplot3d")
+library("R.matlab")
+
+```
+
+Reading data
+
+```{r}
+train = readMat("./thyroid.mat")
+summary(train)
+train$y[train$y == 1]
+# train$Age[is.na(train$Age)] = mean(train$Age, na.rm = T)
+```
+
+X1
+```{r}
+outlier_values <- boxplot.stats(train$X[, 1:1])$out  # outlier values.
+
+boxplot(train$X[, 1:1], main="X1", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+X2
+```{r}
+outlier_values <- boxplot.stats(train$X[, 2:2])$out  # outlier values.
+
+boxplot(train$X[, 2:2], main="X2", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+X3
+```{r}
+outlier_values <- boxplot.stats(train$X[, 3:3])$out  # outlier values.
+
+boxplot(train$X[, 3:3], main="X3", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+
+X4
+```{r}
+outlier_values <- boxplot.stats(train$X[, 4:4])$out  # outlier values.
+
+boxplot(train$X[, 4:4], main="X4", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+
+X5
+```{r}
+outlier_values <- boxplot.stats(train$X[, 5:5])$out  # outlier values.
+
+boxplot(train$X[, 5:5], main="X5", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+
+X6
+```{r}
+outlier_values <- boxplot.stats(train$X[, 6:6])$out  # outlier values.
+
+boxplot(train$X[, 6:6], main="X6", boxwex=0.1)
+mtext(paste("Outliers: ", paste(outlier_values, collapse=", ")), cex=0.6)
+```
+
+
+
+
+
+
+
+
+
+Analiza multivariata
+
+
+Mahalanobis
+```{r}
+library(Rlof)
+data = train$X
+n.outliers   <- 70 # Mark as outliers the 70 most extreme points
+dist.mahalanobis = mahalanobis(data, colMeans(data), cov(data))
+threeshold =  mean(dist.mahalanobis) + 1 * sd(dist.mahalanobis)
+
+
+
+m.dist.order <- order(dist.mahalanobis, decreasing=TRUE)
+is.outlier   <- rep(FALSE, nrow(data))
+is.outlier[dist.mahalanobis > threeshold] <- TRUE
+pch <- is.outlier * 16
+plot(data, pch=pch)
+plot(dist.mahalanobis, pch=pch)
+
+
+is.outlier   <- rep(FALSE, nrow(data))
+is.outlier[train$y == 1] <- TRUE
+pch <- is.outlier * 16
+plot(data, pch=pch)
+
+
+# library(rgl)
+# hwa <- train[, c("Pclass", "Age", "Fare")]
+# m.dist.order                  <- order(mahalanobis(hwa, colMeans(hwa), cov(hwa)), decreasing=TRUE)
+# is.outlier                    <- rep(FALSE, nrow(hwa))
+# is.outlier[m.dist.order[1:2]] <- TRUE # Mark as outliers the 2 most extreme points
+# col                           <- is.outlier + 1
+# plot3d(hwa$Pclass, hwa$Age, hwa$Fare, type="s", col=col)
+# scatterplot3d(hwa$Pclass, hwa$Age, hwa$Fare)
+
+```
+
+
+LOF
+```{r}
+library(Rlof)
+data = train$X
+lof = lof(data, k = 9)
+hist(lof, breaks=10)
+
+plot(data, pch = ".", main = "LOF (k=3)")
+points(data, cex = (lof-1)*3, pch = 1, col="red")
+text(data[lof>2,], labels = round(lof, 1)[lof>2], pos = 3)
+
+x = data[lof>2,]
+print(nrow(x))
+
+true_positive = 0;
+false_positive = 0
+
+for (i in 1:nrow(data.frame(lof))) {
+  if(!is.nan(lof[i]) && !is.infinite(lof[i]) &&  lof[i] > 2 && train$y[i] == 1) {
+    true_positive = true_positive + 1;
+  }
+  if(is.nan(lof[i]) && is.infinite(lof[i]) && lof[i] <= 2 && train$y[i] == 1) {
+    false_positive = false_positive + 1;
+  }
+}
+
+recall = true_positive / (true_positive + false_positive)
+print(recall)
+
+
+b <- train$y[lof>2, ]
+print(b)
+
+```
