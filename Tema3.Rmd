@@ -34,6 +34,8 @@ library(dplyr)
 library(mice)
 library(tibble)
 library(RWeka)
+library(arules)
+library(arulesViz)
 ```
 Reading data
 
@@ -124,7 +126,35 @@ titanic_model_RL <- JRip(Survived ~ Pclass +Sex+ Adult+ Family + Deck + title + 
 prediction_RL=predict(titanic_model_RL,titanic_test)
 
 titanic_model_RL
+
 ```
+
+Generating apriori rules using arules
+```{r}
+#"Family"
+d <- titanic_train[,c("Survived","Pclass","Adult","Age","title","Deck","Embarked")]
+d$Age <-discretize(d$Age, method = "frequency", 5)
+d$Pclass <-discretize(d$Pclass, method = "frequency", 2)
+#d$Family <-discretize(d$Family,  method = "frequency",2)
+d$Female <- titanic_train$Sex == "female"
+d$Survived <- d$Survived == 1
+d$Adult <- d$Adult == 1
+
+
+#d$title <- discretize(d$title,method = "frequency", 4)
+
+
+aprioriRules <- apriori(d,parameter = list(supp = 0.01, conf = 0.5))
+
+subsetRules <- which(colSums(is.subset(aprioriRules, aprioriRules)) > 1) # get subset rules in vector
+length(subsetRules)  #> 3913
+aprioriRules <- aprioriRules[-subsetRules] # remove subset rules. 
+
+aprioriRules <- sort (aprioriRules, by="confidence", decreasing=TRUE)
+inspect(aprioriRules)
+```
+
+
 
 Prediction results
 ```{r}
@@ -134,4 +164,7 @@ results$Survived=as.integer(results$Survived)-1
 colnames(results)=c("PassengerID","Survived")
 write.csv(results, file="results.csv",row.names=FALSE)
 ```
+
+
+De facut (generat reguli aleatorii din date pentru saptamana 6)
 
