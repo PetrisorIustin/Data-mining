@@ -1,0 +1,126 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+library(h2o)
+library(caret)
+library(lme4)
+library(ggalluvial)
+library(xgboost)
+library(jsonlite)
+library(lubridate)
+library(knitr)
+library(Rmisc)
+library(scales)
+library(countrycode)
+library(highcharter)
+library(glmnet)
+library(keras)
+library(forecast)
+library(zoo)
+library(magrittr)
+library(tidyverse)
+library(ggplot2)
+library(moments)
+
+
+tr <- read_csv(file="~/Master semestru 2/Data mining/Lab1/titanic/train.csv")
+s = summary(tr)
+boxplot(tr$Age, main="Age")
+boxplot(tr$Parch)
+boxplot(tr$SibSp)
+boxplot(tr$Fare)
+
+
+hist(tr$Age)
+hist(tr$Parch)
+hist(tr$SibSp)
+hist(tr$Fare)
+
+
+
+```
+Barplots:
+```{r}
+barplot(table(tr$Survived))
+barplot(table(tr$Sex))
+barplot(table(tr$Pclass))
+barplot(table(tr$Embarked))
+```
+
+
+
+
+Age distribution
+```{r}
+plot(density(tr$Age, na.rm = T), main="Age distribution")
+paste("skewness = ", skewness(tr$Age, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$Age, na.rm = T)) 
+
+```
+SibSp distribution
+```{r}
+plot(density(tr$SibSp, na.rm = T), main="SibSp distribution")
+paste("skewness = ", skewness(tr$SibSp, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$SibSp, na.rm = T)) 
+
+```
+Fare distribution
+```{r}
+plot(density(tr$Fare, na.rm = T), main="Fare distribution",col=iris[,5])
+paste("skewness = ", skewness(tr$Fare, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$Fare, na.rm = T)) 
+
+```
+Parch distribution
+```{r}
+plot(density(tr$Parch, na.rm = T), main="Parch distribution")
+paste("skewness = ", skewness(tr$Parch, na.rm = T)) 
+paste("kurtosis = ", kurtosis(tr$Parch, na.rm = T)) 
+
+```
+Scatter plots between 2 variables
+```{r}
+tr_aux = tr[,c("Sex","Age","Pclass","SibSp","Parch","Fare","Embarked")]
+tr_aux$Age[is.na(tr_aux$Age)] = mean(tr$Age, na.rm = T)
+tr_aux$Sex = as.numeric((as.factor(tr_aux$Sex)))
+tr_aux$Embarked = as.numeric((as.factor(tr_aux$Embarked)))
+tr_aux$Embarked[is.na(tr_aux$Embarked)] = 3
+pca <- prcomp(tr_aux)
+summary(pca)
+biplot(pca, choices = c(1,2))
+plot(pca, type = "l")
+pairs(pca$x[, c(1,2)],col=iris[,5])
+```
+```{r}
+
+library(caret)  
+library(Rtsne)
+
+tsne_model_1 = Rtsne(as.matrix(tr_aux), check_duplicates=FALSE, pca=TRUE, perplexity=30, theta=0.5, dims=2)
+d_tsne_1 = as.data.frame(tsne_model_1$Y)
+## plotting the results without clustering
+ggplot(d_tsne_1, aes(x=V1, y=V2)) +  
+  geom_point(size=0.25) +
+  guides(colour=guide_legend(override.aes=list(size=6))) +
+  xlab("") + ylab("") +
+  ggtitle("t-SNE") +
+  theme_light(base_size=20) +
+  theme(axis.text.x=element_blank(),
+        axis.text.y=element_blank()) +
+  scale_colour_brewer(palette = "Set2")
+```
+
+
+
